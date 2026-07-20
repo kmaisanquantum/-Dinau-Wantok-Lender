@@ -1,0 +1,49 @@
+version: "3.9"
+
+# Deploy target: self-hosted Linux VPS via Coolify. Coolify picks this
+# file up directly for a "Docker Compose" resource — set the env vars
+# below in Coolify's environment panel rather than committing a .env.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: wantok_lender
+      POSTGRES_USER: wantok
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./schema/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wantok -d wantok_lender"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://wantok:${POSTGRES_PASSWORD}@db:5432/wantok_lender
+      HASH_PEPPER: ${HASH_PEPPER}
+      FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE: ${PUBLIC_API_URL}
+    ports:
+      - "5173:80"
+
+volumes:
+  db_data:
