@@ -12,13 +12,26 @@ from app.models.orm import Tenant, Borrower, Loan, CollateralLog, Transaction
 async def seed_data():
     async with AsyncSessionLocal() as db:
         # Check if the seed tenant already exists
-        seed_email = "admin@dspng.tech"
+        seed_email = "seed@wantok.com"
         stmt = select(Tenant).where(Tenant.contact_email == seed_email)
         result = await db.execute(stmt)
         existing_tenant = result.scalar_one_or_none()
 
         if existing_tenant:
-            print("Seed tenant already exists, skipping seeding.")
+            print("Seed tenant already exists. Ensuring password is set correctly...")
+            existing_tenant.password_hash = hash_password("password123")
+            await db.commit()
+            return
+
+        # Also check for dspng admin to make sure we don't duplicate or we can clean up
+        dspng_stmt = select(Tenant).where(Tenant.contact_email == "admin@dspng.tech")
+        dspng_res = await db.execute(dspng_stmt)
+        dspng_tenant = dspng_res.scalar_one_or_none()
+        if dspng_tenant:
+            # If the dspng admin exists, let's just update its email and password to default to avoid confusion
+            dspng_tenant.contact_email = "seed@wantok.com"
+            dspng_tenant.password_hash = hash_password("password123")
+            await db.commit()
             return
 
         print("Seeding demo database with live multi-tenant mock data...")
@@ -32,7 +45,7 @@ async def seed_data():
             province="Western Highlands",
             contact_phone="67571234567",
             contact_email=seed_email,
-            password_hash=hash_password("kankok"),
+            password_hash=hash_password("password123"),
             is_active=True,
             max_interest_rate_bp=3000,
         )
