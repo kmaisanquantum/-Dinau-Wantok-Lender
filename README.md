@@ -69,22 +69,30 @@ npm run dev
 
 ## Deploying on a self-hosted VPS via Coolify
 
-1. Push this repo to GitHub (see below).
-2. In Coolify: **New Resource → Docker Compose**, point it at this
-   repo, `docker-compose.yml` at the root.
-3. Set environment variables in Coolify's UI (never commit them):
-   `POSTGRES_PASSWORD`, `HASH_PEPPER`, `FIELD_ENCRYPTION_KEY`,
-   `JWT_SECRET`, `PUBLIC_API_URL`.
-   Generate `FIELD_ENCRYPTION_KEY` with:
-   ```bash
-   python -c "import os,base64;print(base64.b64encode(os.urandom(32)).decode())"
-   ```
-4. Deploy. Coolify builds `backend/Dockerfile` and
-   `frontend/Dockerfile`, and initializes Postgres from
-   `schema/schema.sql` on first boot via the compose file's
-   `docker-entrypoint-initdb.d` mount.
-5. Point your domain at Coolify's reverse proxy and enable Let's
-   Encrypt in the Coolify UI for TLS.
+The application is fully optimized to be deployed either as a single multi-stage container ("Application" mode in Coolify) or as separate compose services.
+
+### Option A: Single-Container SaaS Model (Recommended)
+This approach bundles the built React frontend directly into the Python container, running both the API and the SPA on a single port (8000), eliminating cross-container CORS, 502, or DNS issues.
+
+1. In Coolify, create a **New Resource → Application**.
+2. Point it at this repository with:
+   - **Build Pack**: `Dockerfile`
+   - **Base Directory**: `/` (repo root)
+   - **Exposed Port**: `8000`
+3. Configure the following environment variables in Coolify's panel:
+   - `DATABASE_URL`: Connection string to your managed/standalone PostgreSQL database using the async driver, e.g., `postgresql+asyncpg://<user>:<password>@<managed-db-host>:5432/<dbname>`.
+   - `HASH_PEPPER`: Secret random string for identity hashing.
+   - `FIELD_ENCRYPTION_KEY`: A symmetric 32-byte key encoded in base64. Generate one using:
+     ```bash
+     python -c "import os,base64;print(base64.b64encode(os.urandom(32)).decode())"
+     ```
+   - `JWT_SECRET`: Random secret for signing access tokens.
+4. Deploy. On startup, the FastAPI app automatically runs database table migrations (`Base.metadata.create_all`) and seeds initial demo stats, making the app immediately functional.
+
+### Option B: Multi-Service Docker Compose
+1. In Coolify: **New Resource → Docker Compose**, pointing at `docker-compose.yml` at the root.
+2. Set environment variables: `POSTGRES_PASSWORD`, `HASH_PEPPER`, `FIELD_ENCRYPTION_KEY`, `JWT_SECRET`, `PUBLIC_API_URL`.
+3. Deploy. Coolify builds the separate `backend/` and `frontend/` directories and configures internal proxy resolution.
 
 ## Pushing to GitHub
 
