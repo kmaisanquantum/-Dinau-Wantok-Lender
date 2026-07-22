@@ -45,7 +45,8 @@ CREATE TABLE tenants (
     registration_number TEXT,                 -- IPA / business registry ref, nullable for informal lenders
     province            TEXT,
     contact_phone       TEXT,
-    contact_email       CITEXT,
+    contact_email       CITEXT UNIQUE,
+    password_hash       TEXT,
     is_active           BOOLEAN NOT NULL DEFAULT TRUE,
     max_interest_rate_bp INTEGER NOT NULL DEFAULT 3000, -- basis points/month cap, tenant-configurable ceiling
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),

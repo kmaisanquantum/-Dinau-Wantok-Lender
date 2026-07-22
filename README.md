@@ -20,9 +20,10 @@ docker-compose.yml     Coolify-ready multi-service deploy
 
 ## What's implemented
 
-- **Schema**: `tenants`, `borrowers` (SHA-256-hashed identity, AES-GCM
+- **Schema**: `tenants` (with password-based authentication), `borrowers` (SHA-256-hashed identity, AES-GCM
   encrypted PII), `loans` (with Alesco ceiling snapshot fields),
   `collateral_logs`, `transactions` (idempotent, signed).
+- **Authentication system**: Secure JWT-based multi-tenant authentication (`POST /api/v1/auth/login` and `GET /api/v1/auth/me`).
 - **Anonymized cross-tenant credit checker**: hashes a phone/ID and
   returns only an aggregate risk tier + counts — never another
   tenant's identity or loan details.
@@ -33,20 +34,18 @@ docker-compose.yml     Coolify-ready multi-service deploy
 - **Alesco payslip parser**: OCR + regex extraction of Gross/Net Pay
   and deduction lines, with a reconciliation check and a 50%-ceiling
   compliance check. See `docs/payslip_parsing.md`.
-- **Lender dashboard**: Total Capital Out, Expected Fortnightly
-  Repayments, At-Risk Accounts, Collateral Vault — laid out for a
-  quick glance at a physical lending counter.
+- **Tenant CRUD management APIs**: Fully implemented and secure routes for creating and listing borrowers, issuing loans (with compliance checks), logging/releasing physical collateral, and recording repayments.
+- **Lender dashboard**: Live statistics including Total Capital Out, Expected Fortnightly Repayments, At-Risk Accounts, and Collateral Vault.
+
+## Seeding & Demo Access
+
+The system comes with an idempotent automatic database seeder. On startup, a demo tenant with live statistics, multiple registered borrowers, outstanding loans, and collateral logs is created.
+
+- **Seed login email**: `seed@wantok.com`
+- **Password**: `password123`
 
 ## What you still need to add before production
 
-- A real auth/login flow issuing the JWTs `get_current_tenant_id`
-  expects (this scaffold only validates tokens, it doesn't mint them).
-- A `/api/v1/dashboard/summary` aggregation endpoint — the frontend
-  currently falls back to mock data if that route isn't present.
-- A loan-issuance endpoint that actually calls
-  `check_deduction_ceiling()` before disbursing and rejects loans that
-  would breach it — the parser only answers the compliance question,
-  it doesn't enforce it.
 - Device-secret provisioning/rotation for the sync pipeline's HMAC
   signing (currently passed in as a header per request).
 - Real Alembic migrations instead of the single `schema.sql`, once the
