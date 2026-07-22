@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import credit_check, payslip, sync
+from app.routers import credit_check, payslip, sync, dashboard
 
 app = FastAPI(
     title="Wantok Lender API",
@@ -19,6 +19,7 @@ app.add_middleware(
 app.include_router(credit_check.router)
 app.include_router(sync.router)
 app.include_router(payslip.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/healthz")
