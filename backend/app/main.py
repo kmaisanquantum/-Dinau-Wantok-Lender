@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import traceback
+from app.core.database import engine, Base
 from app.routers import credit_check, payslip, sync, dashboard, auth, borrowers, loans, collateral
 from app.seed import seed_data
 
@@ -20,9 +22,18 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     try:
+        # Self-heal schema drift: create missing tables on startup
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as e:
+        print("Error self-healing schema on startup:")
+        traceback.print_exc()
+
+    try:
         await seed_data()
     except Exception as e:
         print(f"Error seeding database: {e}")
+        traceback.print_exc()
 
 app.include_router(auth.router)
 app.include_router(borrowers.router)

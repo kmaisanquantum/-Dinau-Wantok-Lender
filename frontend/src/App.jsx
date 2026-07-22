@@ -96,6 +96,16 @@ function AuthenticatedRoutes({ onLogout }) {
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("wantok_token"));
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setIsAuthenticated(false);
+    };
+    window.addEventListener("unauthorized", handleUnauthorized);
+    return () => {
+      window.removeEventListener("unauthorized", handleUnauthorized);
+    };
+  }, []);
+
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
   };
