@@ -12,7 +12,7 @@ from app.models.orm import Tenant, Borrower, Loan, CollateralLog, Transaction
 async def seed_data():
     async with AsyncSessionLocal() as db:
         # Check if the seed tenant already exists
-        seed_email = "seed@wantok.com"
+        seed_email = "admin@dspng.tech"
         stmt = select(Tenant).where(Tenant.contact_email == seed_email)
         result = await db.execute(stmt)
         existing_tenant = result.scalar_one_or_none()
@@ -32,7 +32,7 @@ async def seed_data():
             province="Western Highlands",
             contact_phone="67571234567",
             contact_email=seed_email,
-            password_hash=hash_password("password123"),
+            password_hash=hash_password("kankok"),
             is_active=True,
             max_interest_rate_bp=3000,
         )
