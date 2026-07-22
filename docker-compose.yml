@@ -20,6 +20,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - appnet
 
   backend:
     build: ./backend
@@ -34,6 +36,10 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8000:8000"
+    networks:
+      appnet:
+        aliases:
+          - backend
 
   frontend:
     build:
@@ -45,6 +51,12 @@ services:
       - backend
     ports:
       - "5173:80"
+    networks:
+      - appnet
 
 volumes:
   db_data:
+
+networks:
+  appnet:
+    driver: bridge
