@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import credit_check, payslip, sync, dashboard
+from app.routers import credit_check, payslip, sync, dashboard, auth, borrowers, loans, collateral
+from app.seed import seed_data
 
 app = FastAPI(
     title="Wantok Lender API",
@@ -16,6 +17,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    try:
+        await seed_data()
+    except Exception as e:
+        print(f"Error seeding database: {e}")
+
+app.include_router(auth.router)
+app.include_router(borrowers.router)
+app.include_router(loans.router)
+app.include_router(collateral.router)
 app.include_router(credit_check.router)
 app.include_router(sync.router)
 app.include_router(payslip.router)

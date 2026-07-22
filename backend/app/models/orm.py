@@ -24,6 +24,7 @@ class Tenant(Base):
     province = Column(Text)
     contact_phone = Column(Text)
     contact_email = Column(Text)
+    password_hash = Column(Text)
     is_active = Column(Boolean, nullable=False, default=True)
     max_interest_rate_bp = Column(Integer, nullable=False, default=3000)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)

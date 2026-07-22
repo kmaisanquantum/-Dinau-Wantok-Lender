@@ -78,3 +78,17 @@ def decrypt_field(blob: bytes) -> str:
     aesgcm = AESGCM(_key_bytes())
     nonce, ciphertext = blob[:12], blob[12:]
     return aesgcm.decrypt(nonce, ciphertext, None).decode("utf-8")
+
+
+# --- Password Hashing -----------------
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
