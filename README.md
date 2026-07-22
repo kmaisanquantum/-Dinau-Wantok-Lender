@@ -41,8 +41,8 @@ docker-compose.yml     Coolify-ready multi-service deploy
 
 The system comes with an idempotent automatic database seeder. On startup, a demo tenant with live statistics, multiple registered borrowers, outstanding loans, and collateral logs is created.
 
-- **Seed login email**: `admin@dspng.tech`
-- **Password**: `kankok`
+- **Seed login email**: `seed@wantok.com`
+- **Password**: `password123`
 
 ## What you still need to add before production
 
