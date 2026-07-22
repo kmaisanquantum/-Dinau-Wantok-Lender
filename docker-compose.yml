@@ -36,12 +36,13 @@ services:
       - "8000:8000"
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE: ${PUBLIC_API_URL}
     restart: unless-stopped
     depends_on:
       - backend
-    environment:
-      VITE_API_BASE: ${PUBLIC_API_URL}
     ports:
       - "5173:80"
 
